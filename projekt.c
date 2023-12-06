@@ -6,39 +6,48 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
-#include <signal.h>
-#include <signal.h>
 #include <unistd.h>
 #include <time.h>
 
 #define MAX_CLIENTS 10
 
 // Definicja struktury pary klucz-wartość
-struct KeyValuePair {
+struct ClientsPair {
     char* key;
     char* value;
 };
 
-struct KeyValuePair* keyValuePair;
-
 // Funkcja tworząca nową parę klucz-wartość
-struct KeyValuePair createKeyValuePair(const char* key, const char* value) {
-    struct KeyValuePair pair;
-    if (pair.key != NULL && pair.value != NULL)
-    {
-        pair.key = strdup(key);   // strdup alokuje pamięć na kopię stringa
-        pair.value = strdup(value);
-    }
+struct ClientsPair createClientsPair(char* key, char* value) {
+    struct ClientsPair pair;
+    pair.key = key;
+    pair.value = value;
     return pair;
 }
 
 // Funkcja usuwająca parę klucz-wartość
-void destroyKeyValuePair(struct KeyValuePair pair) {
-    if (pair.key != NULL && pair.value != NULL) {
-        free(pair.key);
-        free(pair.value);
-    }
+void destroyClientsPair(struct ClientsPair pair) {
+    free(pair.key);
+    free(pair.value);
 }
+
+struct Message {
+    struct ClientsPair pair;
+    char *content;
+};
+
+struct Message createMessage(struct ClientsPair pair, char* content) {
+    struct Message message;
+    message.pair = pair;
+    message.content = strdup(content);
+    return message;
+}
+
+void destroyMessage(struct Message message) {
+    destroyClientsPair(message.pair);
+    free(message.content);
+}
+
 
 int check_if_array_contains_element(char* array[], int array_len, char* element) {
     for (int i = 0; i < array_len/8; i++) {
@@ -89,6 +98,12 @@ int _read(int fd, char* buffer, int buffer_len) {
     return bytes_received;
 }
 
+char* concat(char* s1, char* s2) {
+    char* result = malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
 
 char* generateNumber() {
     int number;
@@ -99,11 +114,14 @@ char* generateNumber() {
     return resultString;
 }
 
-int main(int argc, char** argv) {
+int main() {
     char* clients[1024]; // utworzenie tablicy dla identyfikatorów klientów
     fill_array_with_zeros(clients, sizeof(clients)); // wypełnienie tablicy zerami
-    struct KeyValuePair* clientPairs[__INT_MAX__]; // utworzenie tablicy dla par klucz-wartość
+    struct Message* messages[6442]; // utworzenie tablicy dla wiadomości
+    struct ClientsPair* clientPairs[6442]; // utworzenie tablicy dla par klucz-wartość
     int clientPairIndex = 0; // utworzenie zmiennej pomocniczej dla tablicy par klucz-wartość
+    int clientIndex = 0; // utworzenie zmiennej pomocniczej dla tablicy identyfikatorów klientów
+    int activeClientIndex = 0; // utworzenie zmiennej pomocniczej dla tablicy aktywnych identyfikatorów klientów
     socklen_t slt; // utworzenie zmiennej dla rozmiaru struktury adresowej
     int on = 1; // zmienna pomocnicza
     int sfd, cfd; // utworzenie deskryptorów dla gniazd serwera i klienta
@@ -132,7 +150,7 @@ int main(int argc, char** argv) {
     if(bind(sfd, (struct sockaddr*) &saddr, sizeof(saddr)) == -1) { // powiązanie gniazda z adresem i portem
         printf("Bind failed\n");
     }
-    
+
     if (listen(sfd, MAX_CLIENTS) == -1) { // nasłuchiwanie na porcie 1234 z maksymalnie 10 klientami
         printf("Listen failed\n");
         exit(1);
@@ -152,7 +170,7 @@ int main(int argc, char** argv) {
         timeout.tv_sec = 5; // ustawienie timeoutu na 5 sekund
         timeout.tv_usec = 0; // ustawienie timeoutu na 0 mikrosekund (czyli w sumie i tak 5 sekund)
         rc = select(fdmax+1, &rmask, &wmask, (fd_set*)0, &timeout); // wywołanie selecta, który czeka na zdarzenie na jednym z deskryptorów. Select służy do obsługi wielu połączeń na raz
-        if (rc == 0) 
+        if (rc == 0)
             continue; // jeśli nie ma żadnego zdarzenia, to kontynuuj
         fda = rc; // przypisanie liczby zdarzeń do zmiennej pomocniczej
         if (FD_ISSET(sfd, &rmask)) { // jeśli zdarzenie jest na deskryptorze serwera
@@ -162,7 +180,7 @@ int main(int argc, char** argv) {
             FD_SET(cfd, &mask); // dodanie deskryptora klienta do zbioru deskryptorów
             if (cfd > fdmax) fdmax = cfd; // jeśli deskryptor klienta jest większy od maksymalnego deskryptora, to ustaw maksymalny deskryptor na deskryptor klienta
         }
-        
+
         for (i = sfd+1; i <= fdmax && fda > 0; i++) { // dla każdego deskryptora od serwera do maksymalnego deskryptora i jeśli liczba zdarzeń jest większa od 0
             if (FD_ISSET(i, &wmask)) { // jeśli zdarzenie jest na deskryptorze do zapisu
                 fda -= 1;
@@ -173,6 +191,8 @@ int main(int argc, char** argv) {
                         number = generateNumber(); // wygeneruj numer Gadu-Gadu
                         printf("breakpoint");
                     } while (check_if_array_contains_element(clients, sizeof(clients), number) == 1); // sprawdź, czy numer Gadu-Gadu nie jest już zajęty
+
+                    clients[clientIndex++] = number; // dodaj numer Gadu-Gadu do tablicy identyfikatorów klientów
                     _write(i, number, 4); // wyślij numer Gadu-Gadu do klienta
                     FD_CLR(i, &clients_waiting_for_id); // usuń deskryptor klienta z zbioru deskryptorów klientów oczekujących na numer Gadu-Gadu
                     FD_SET(i, &rmask); // dodaj deskryptor klienta do zbioru deskryptorów do odczytu
@@ -184,7 +204,7 @@ int main(int argc, char** argv) {
                 close(i); // zamknięcie połączenia z klientem
                 FD_CLR(i, &wmask); // usunięcie deskryptora z zbioru deskryptorów do zapisu
                 FD_CLR(i, &mask); // usunięcie deskryptora z zbioru deskryptorów
-                
+
                 if (i == fdmax) { // jeśli deskryptor jest maksymalnym deskryptorem
                     while(fdmax > sfd && !FD_ISSET(fdmax, &mask)) { // dopóki maksymalny deskryptor jest większy od deskryptora serwera i nie jest w zbiorze deskryptorów
                         fdmax -= 1;
@@ -197,12 +217,30 @@ int main(int argc, char** argv) {
                 if (strncmp(message, "0000", 4) == 0) {
                     FD_SET(i, &clients_waiting_for_id); // dodaj deskryptor klienta do zbioru deskryptorów klientów oczekujących na numer Gadu-Gadu
                     FD_SET(i, &wmask); // dodaj deskryptor klienta do zbioru deskryptorów do zapisu
+
                 } else if (strncmp(message, "0001", 4) == 0) {
                     FD_SET(i, &wmask); // dodaj deskryptor klienta do zbioru deskryptorów do zapisu
-                    if (check_if_array_contains_element(clients, sizeof(clients), message) == 1) { // sprawdź, czy numer Gadu-Gadu istnieje
+                    if (check_if_array_contains_element(clients, sizeof(clients), message+7) == 1) { // sprawdź, czy numer Gadu-Gadu istnieje
                         FD_SET(i, &clients_waiting_for_adding_contact); // dodaj deskryptor klienta do zbioru deskryptorów klientów oczekujących na dodanie kontaktu
-                        struct KeyValuePair pair = createKeyValuePair(message, "0"); // utwórz parę klucz-wartość
+                        struct ClientsPair pair = createClientsPair(message+3, message+7); // utwórz parę klucz-wartość z numerem Gadu-Gadu nadawcy i numerem Gadu-Gadu odbiorcy
                         clientPairs[clientPairIndex++] = &pair; // dodaj parę klucz-wartość do tablicy par klucz-wartość
+                    } else if (strncmp(message, "0002", 4) == 0) {
+                        FD_SET(i, &wmask);
+                        int flag = 0;
+                        for (int j = 0; j < __INT_MAX__; j++)
+                        {
+                            if (messages[j]->pair.key == message+3) {
+                                if (messages[j]->pair.value == message+7) {
+                                    messages[j]->content = concat(messages[j]->content, message+11);
+                                    flag = 1;
+                                    break;
+                                }
+                            }
+                        }
+                        if (flag == 0) {
+                            struct Message newMessage = createMessage(createClientsPair(message+3, message+7), message+11);
+                            messages[activeClientIndex++] = &newMessage;
+                        }
                     } else {
                         FD_SET(i, &clients_failure); // dodaj deskryptor klienta do zbioru deskryptorów klientów, którzy nie podali poprawnego numeru Gadu-Gadu
                     }
