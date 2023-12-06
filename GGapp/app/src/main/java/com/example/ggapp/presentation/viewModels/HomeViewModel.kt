@@ -1,37 +1,42 @@
 package com.example.ggapp.presentation.viewModels
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 
 data class UserInfo(
-    val id: Int,
-    val username: String
+    val id: String
 )
 
 class HomeViewModel: ViewModel() {
 
 
 
-     var addedUsers = mutableListOf(
-        UserInfo(
-            1234,
-            "Bob"
-        ),
-        UserInfo(
-            4321,
-            "John"
-        ),
-        UserInfo(
-            9876,
-            "Natalie"
-        )
-    )
+     var contacts = mutableStateListOf<UserInfo>()
         private set
 
-    fun addUser(user: UserInfo) {
-        addedUsers.add(user)
+    var showDialog by mutableStateOf(false)
+        private set
+
+    var newContactID by mutableStateOf("")
+        private set
+
+    fun addUser() {
+//        TODO: connect to server
+        contacts.add(UserInfo(newContactID))
     }
 
+    fun showDialog(){
+        showDialog = true
+    }
 
+    fun hideDialog(){
+        showDialog = false
+    }
 
-
+    fun updateNewContactID(newValue: String) {
+        newContactID = newValue
+    }
 }

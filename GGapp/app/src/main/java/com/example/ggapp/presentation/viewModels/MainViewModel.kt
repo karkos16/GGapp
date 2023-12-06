@@ -7,9 +7,8 @@ import com.ramcosta.composedestinations.DestinationsNavHost
 class MainViewModel: ViewModel() {
 
 
-
-    fun getID(): Int{
+    fun getID(): String{
 //        TODO: connect to server and get ID
-        return 1234
+        return "1234"
     }
 }
