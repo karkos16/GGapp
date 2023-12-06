@@ -38,7 +38,7 @@ fun GetIDScreen(
             navigator.popBackStack(GetIDScreenDestination, true)
             navigator.navigate(HomeScreenDestination)
         }) {
-            Text(text = "Uzyskaj identyfikator")
+            Text(text = "Get ID")
         }
     }
 }
