@@ -105,8 +105,8 @@ fun Content(viewModel: HomeViewModel, navigator: DestinationsNavigator) {
     LazyColumn(modifier = Modifier.fillMaxWidth().padding(top = 50.dp)) {
         contacts.forEach {userInfo ->
             item {
-                TextButton(onClick = { navigator.navigate(ConversationScreenDestination) }) {
-                    Text(text = userInfo.id + " ")
+                TextButton(onClick = { navigator.navigate(ConversationScreenDestination(contactID = userInfo.id)) }) {
+                    Text(text = userInfo.id)
                 }
             }
 
