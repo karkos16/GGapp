@@ -172,7 +172,6 @@ int main() {
                         number = generateNumber();
                         std::cout << "breakpoint" << std::endl;
                     } while (check_if_vector_contains_element(clients, number) == 1);
-
                     clients[clientIndex++] = number;
                     _write(i, number);
                     FD_CLR(i, &clients_waiting_for_id);
@@ -198,35 +197,46 @@ int main() {
                 if (strncmp(message.c_str(), "0000", 4) == 0) {
                     FD_SET(i, &clients_waiting_for_id);
                     FD_SET(i, &wmask);
-                } else if (strncmp(message.c_str(), "0001", 4) == 0) {
+                } else if (strncmp(message.c_str(), "0001", 4) == 0) { // 
                     FD_SET(i, &wmask);
-                    if (check_if_vector_contains_element(clients, message.substr(7)) == 1) {
+                    if (!check_if_vector_contains_element(clients, message.substr(7))) {
                         FD_SET(i, &clients_waiting_for_adding_contact);
                         ClientsPair* pair = new ClientsPair(createClientsPair(message.substr(3), message.substr(7)));
                         clientPairs[clientPairIndex++] = pair;
-                    } else if (strncmp(message.c_str(), "0002", 4) == 0) {
-                        FD_SET(i, &wmask);
-                        int flag = 0;
-                        for (int j = 0; j < INT_MAX; j++) {
-                            if (messages[j]->pair.key == message.substr(3)) {
-                                if (messages[j]->pair.value == message.substr(7)) {
-                                    messages[j]->content = concat(messages[j]->content, message.substr(11));
-                                    flag = 1;
-                                    break;
-                                }
-                            }
-                        }
-                        if (flag == 0) {
-                            Message* newMessage = new Message(createMessage(createClientsPair(message.substr(3), message.substr(7)), message.substr(11)));
-                            messages[activeClientIndex++] = newMessage;
-                        }
-                    } else {
+                    } else { // gdy istnieje taki czat
                         FD_SET(i, &clients_failure);
                     }
+                } else if (strncmp(message.c_str(), "0002", 4) == 0) {
+                    FD_SET(i, &wmask);
+                    int flag = 0;
+                    for (int j = 0; j < INT_MAX; j++) {
+                        if (messages[j]->pair.key == message.substr(3)) {
+                            if (messages[j]->pair.value == message.substr(7)) {
+                                messages[j]->content = concat(messages[j]->content, message.substr(11)); // dodajemy wiadomość do istniejącego czatu
+                                flag = 1;
+                                messages[j]->content = concat(messages[j]->content, "\t\t"); // dodajemy znacznik końca wiadomości
+                                break;
+                            }
+                        } else if (messages[j]->pair.key == message.substr(7)) {
+                            if (messages[j]->pair.value == message.substr(3)) {
+                                messages[j]->content = concat(messages[j]->content, message.substr(11)); // dodajemy wiadomość do istniejącego czatu
+                                messages[j]->content = concat(messages[j]->content, "\t\t"); // dodajemy znacznik końca wiadomości
+                                flag = 1;
+                                break;
+                            }
+                        }
+                    }
+                    if (flag == 0) {
+                        Message* newMessage = new Message(createMessage(createClientsPair(message.substr(3), message.substr(7)), message.substr(11)));
+                        newMessage->content = concat(newMessage->content, "\t\t"); // dodajemy znacznik końca wiadomości
+                        messages[activeClientIndex++] = newMessage;
+                    }
+                } else {
+                    FD_SET(i, &clients_failure);
                 }
-                FD_CLR(i, &mask);
-                FD_SET(i, &wmask);
             }
+            FD_CLR(i, &mask);
+            FD_SET(i, &wmask);
         }
     }
     return 0;
