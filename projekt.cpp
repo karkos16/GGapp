@@ -97,7 +97,7 @@ std::string generateNumber() {
 
 int main() {
     std::vector<std::string> clients(1024, "0");
-    std::vector<Message*> messages(6442);
+    std::vector<Message*> messages(6442, 0);
     std::vector<ClientsPair*> clientPairs(6442);
     int clientPairIndex = 0;
     int clientIndex = 0;
@@ -166,12 +166,25 @@ int main() {
         for (i = sfd+1; i <= fdmax && fda > 0; i++) {
             if (FD_ISSET(i, &wmask)) {
                 fda -= 1;
-                if (FD_ISSET(i, &clients_waiting_for_id)) {
+                if (FD_ISSET(i, &clients_waiting_for_id)) { 
                     std::string number;
                     do {
                         number = generateNumber();
-                        std::cout << "breakpoint" << std::endl;
                     } while (check_if_vector_contains_element(clients, number) == 1);
+                    // sprawdzamy czy wektor clients nie jest pełny
+                    if (clientIndex == clients.size() - 1) {
+                        _write(i, "0"); // jeśli jest pełny to wysyłamy 0
+                        FD_CLR(i, &clients_waiting_for_id); 
+                        FD_CLR(i, &wmask);
+                        FD_CLR(i, &mask);
+                        close(i);
+                        if (i == fdmax) {
+                            while(fdmax > sfd && !FD_ISSET(fdmax, &mask)) {
+                                fdmax -= 1;
+                            }
+                        }
+                        break; // break czy continue? TODO
+                    }
                     clients[clientIndex++] = number;
                     _write(i, number);
                     FD_CLR(i, &clients_waiting_for_id);
@@ -199,35 +212,39 @@ int main() {
                     FD_SET(i, &wmask);
                 } else if (strncmp(message.c_str(), "0001", 4) == 0) { // 
                     FD_SET(i, &wmask);
-                    if (!check_if_vector_contains_element(clients, message.substr(7))) {
+                    
+                    // sprawdzamy teraz czy czterocyfrowy numer (po 0001) istnieje w wektorze clients
+                    if (!check_if_vector_contains_element(clients, message.substr(3, 4))) { // TODO negacja czy nie?
                         FD_SET(i, &clients_waiting_for_adding_contact);
-                        ClientsPair* pair = new ClientsPair(createClientsPair(message.substr(3), message.substr(7)));
+                        ClientsPair* pair = new ClientsPair(createClientsPair(message.substr(3,4), message.substr(7,4)));
                         clientPairs[clientPairIndex++] = pair;
                     } else { // gdy istnieje taki czat
-                        FD_SET(i, &clients_failure);
+                        FD_SET(i, &clients_failure); // TODO czy jest sens to ustawiać?
                     }
                 } else if (strncmp(message.c_str(), "0002", 4) == 0) {
                     FD_SET(i, &wmask);
                     int flag = 0;
                     for (int j = 0; j < INT_MAX; j++) {
-                        if (messages[j]->pair.key == message.substr(3)) {
-                            if (messages[j]->pair.value == message.substr(7)) {
-                                messages[j]->content = concat(messages[j]->content, message.substr(11)); // dodajemy wiadomość do istniejącego czatu
+                        if (messages[j]->pair.key == message.substr(3, 4)) {
+                            if (messages[j]->pair.value == message.substr(7, 4)) {
+                                messages[j]->content = concat(messages[j]->content, message); // TODO ale kto pisze?
                                 flag = 1;
                                 messages[j]->content = concat(messages[j]->content, "\t\t"); // dodajemy znacznik końca wiadomości
                                 break;
                             }
-                        } else if (messages[j]->pair.key == message.substr(7)) {
-                            if (messages[j]->pair.value == message.substr(3)) {
-                                messages[j]->content = concat(messages[j]->content, message.substr(11)); // dodajemy wiadomość do istniejącego czatu
+                        } else if (messages[j]->pair.key == message.substr(7, 4)) { // TODO czy musimy sprawdzać odwrotność?
+                            if (messages[j]->pair.value == message.substr(3, 4)) {
+                                messages[j]->content = concat(messages[j]->content, message); // TODO ale kto pisze?
                                 messages[j]->content = concat(messages[j]->content, "\t\t"); // dodajemy znacznik końca wiadomości
                                 flag = 1;
                                 break;
                             }
+                        } else {
+                            continue;
                         }
                     }
                     if (flag == 0) {
-                        Message* newMessage = new Message(createMessage(createClientsPair(message.substr(3), message.substr(7)), message.substr(11)));
+                        Message* newMessage = new Message(createMessage(createClientsPair(message.substr(3, 4), message.substr(7, 4)), message.substr(11)));
                         newMessage->content = concat(newMessage->content, "\t\t"); // dodajemy znacznik końca wiadomości
                         messages[activeClientIndex++] = newMessage;
                     }
@@ -235,7 +252,7 @@ int main() {
                     FD_SET(i, &clients_failure);
                 }
             }
-            FD_CLR(i, &mask);
+            FD_CLR(i, &mask); // TODO tutaj też jest coś sknocone, musimy poustawiać to w odpowiednich miejscach, bo jak pierwszy raz robię 0001nadawcaodbiorca to nie zwraca mi 1 lub 0 tylko generuje mi nowy numer
             FD_SET(i, &wmask);
         }
     }
