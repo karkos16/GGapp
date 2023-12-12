@@ -1,5 +1,6 @@
 package com.example.ggapp.presentation.ui
 
+import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ggapp.domain.repositories.impl.ServerCommunicatorImpl
+import com.example.ggapp.domain.usecases.CommunicatorUseCaseImpl
 import com.example.ggapp.presentation.viewModels.ConversationViewModel
+import com.example.ggapp.presentation.viewModels.MainViewModel
+import com.example.ggapp.presentation.viewModels.factory.MainViewModelFactory
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
@@ -38,7 +43,9 @@ fun ConversationScreen(
     navigator: DestinationsNavigator,
     contactID: String
 ) {
-    val viewModel = viewModel<ConversationViewModel>()
+    val serverCommunicator = remember { ServerCommunicatorImpl("150.254.30.30", 25) }
+    val communicatorUseCase = remember { CommunicatorUseCaseImpl(serverCommunicator) }
+    val viewModel: ConversationViewModel = viewModel(factory = MainViewModelFactory(communicatorUseCase, application = Application()))
     viewModel.getMessagesFromServer()
 
     val messages = remember {

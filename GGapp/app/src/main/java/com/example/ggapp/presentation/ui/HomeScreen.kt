@@ -1,6 +1,7 @@
 package com.example.ggapp.presentation.ui
 
 import android.annotation.SuppressLint
+import android.app.Application
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,9 +25,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ggapp.domain.repositories.impl.ServerCommunicatorImpl
+import com.example.ggapp.domain.usecases.CommunicatorUseCaseImpl
 import com.example.ggapp.presentation.ui.destinations.ConversationScreenDestination
 import com.example.ggapp.presentation.viewModels.HomeViewModel
+import com.example.ggapp.presentation.viewModels.MainViewModel
 import com.example.ggapp.presentation.viewModels.UserInfo
+import com.example.ggapp.presentation.viewModels.factory.MainViewModelFactory
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
@@ -37,8 +42,9 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 fun HomeScreen(
     navigator: DestinationsNavigator
 ) {
-
-    val viewModel = viewModel<HomeViewModel>()
+    val serverCommunicator = remember { ServerCommunicatorImpl("150.254.30.30", 25) }
+    val communicatorUseCase = remember { CommunicatorUseCaseImpl(serverCommunicator) }
+    val viewModel: HomeViewModel = viewModel(factory = MainViewModelFactory(communicatorUseCase, application = Application()))
 
     Scaffold(
         topBar = {

@@ -1,16 +1,21 @@
 package com.example.ggapp.presentation.viewModels
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.ggapp.domain.usecases.CommunicatorUseCase
 
 data class UserInfo(
     val id: String
 )
 
-class HomeViewModel: ViewModel() {
+class HomeViewModel(
+    private val communicatorUseCase: CommunicatorUseCase,
+    private val application: Application
+): ViewModel() {
 
 
 
