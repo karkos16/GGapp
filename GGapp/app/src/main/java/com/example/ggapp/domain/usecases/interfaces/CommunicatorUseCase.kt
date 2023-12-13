@@ -1,4 +1,4 @@
-package com.example.ggapp.domain.usecases
+package com.example.ggapp.domain.usecases.interfaces
 
 interface CommunicatorUseCase {
     suspend fun getID(): String

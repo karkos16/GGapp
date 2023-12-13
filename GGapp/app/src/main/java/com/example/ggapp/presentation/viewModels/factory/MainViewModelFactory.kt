@@ -1,19 +1,19 @@
 package com.example.ggapp.presentation.viewModels.factory
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.ggapp.domain.usecases.CommunicatorUseCase
+import com.example.ggapp.domain.repositories.interfaces.SharedPrefsRepository
+import com.example.ggapp.domain.usecases.interfaces.CommunicatorUseCase
 import com.example.ggapp.presentation.viewModels.MainViewModel
 
 class MainViewModelFactory(
     private val communicatorUseCase: CommunicatorUseCase,
-    private val application: Application
+    private val sharedPrefsRepository: SharedPrefsRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            return MainViewModel(communicatorUseCase, application) as T
+            return MainViewModel(communicatorUseCase, sharedPrefsRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
