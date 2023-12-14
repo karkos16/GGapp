@@ -173,26 +173,19 @@ int main() {
                     } while (check_if_vector_contains_element(clients, number) == 1);
                     // sprawdzamy czy wektor clients nie jest pełny
                     if (clientIndex == clients.size() - 1) {
-                        _write(i, "0"); // jeśli jest pełny to wysyłamy 0
-                        FD_CLR(i, &clients_waiting_for_id); 
-                        FD_CLR(i, &wmask);
-                        FD_CLR(i, &mask);
-                        close(i);
-                        if (i == fdmax) {
-                            while(fdmax > sfd && !FD_ISSET(fdmax, &mask)) {
-                                fdmax -= 1;
-                            }
-                        }
-                        break; // break czy continue? TODO
+                        FD_SET(i, &clients_failure);
+                        FD_CLR(i, &clients_waiting_for_id);
+                    } else {
+                        clients[clientIndex++] = number;
+                        _write(i, number);
+                        FD_CLR(i, &clients_waiting_for_id);
                     }
-                    clients[clientIndex++] = number;
-                    _write(i, number);
-                    FD_CLR(i, &clients_waiting_for_id);
-                    FD_SET(i, &rmask);
                 } else if (FD_ISSET(i, &clients_waiting_for_adding_contact)) {
                     _write(i, "1");
+                    FD_CLR(i, &clients_waiting_for_adding_contact);
                 } else if (FD_ISSET(i, &clients_failure)) {
                     _write(i, "0");
+                    FD_CLR(i, &clients_failure);
                 }
                 close(i);
                 FD_CLR(i, &wmask);
