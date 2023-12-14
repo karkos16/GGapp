@@ -187,6 +187,7 @@ int main() {
                     _write(i, "0");
                     FD_CLR(i, &clients_failure);
                 }
+
                 close(i);
                 FD_CLR(i, &wmask);
                 FD_CLR(i, &mask);
@@ -200,19 +201,19 @@ int main() {
 
             if(FD_ISSET(i, &rmask)) {
                 _read(i, message);
+
                 if (strncmp(message.c_str(), "0000", 4) == 0) {
                     FD_SET(i, &clients_waiting_for_id);
                     // FD_SET(i, &wmask); duplikat?
-                } else if (strncmp(message.c_str(), "0001", 4) == 0) { // 
-                    FD_SET(i, &wmask);
-                    
-                    // sprawdzamy teraz czy czterocyfrowy numer (po 0001) istnieje w wektorze clients
-                    if (!check_if_vector_contains_element(clients, message.substr(3, 4))) { // TODO negacja czy nie?
+                } else if (strncmp(message.c_str(), "0001", 4) == 0) {
+                    // sprawdzamy teraz czy czterocyfrowy numer (po 0001xxxx) istnieje w wektorze clients
+                    std::cout<<"Sprawdzam id" << message.substr(8, 4) << std::endl;
+                    if (check_if_vector_contains_element(clients, message.substr(8, 4))) {
                         FD_SET(i, &clients_waiting_for_adding_contact);
-                        ClientsPair* pair = new ClientsPair(createClientsPair(message.substr(3,4), message.substr(7,4)));
+                        ClientsPair* pair = new ClientsPair(createClientsPair(message.substr(4,4), message.substr(8,4)));
                         clientPairs[clientPairIndex++] = pair;
-                    } else { // gdy istnieje taki czat
-                        FD_SET(i, &clients_failure); // TODO czy jest sens to ustawiać?
+                    } else { // gdy nie istnieje taki czat
+                        FD_SET(i, &clients_failure);
                     }
                 } else if (strncmp(message.c_str(), "0002", 4) == 0) {
                     FD_SET(i, &wmask);
@@ -246,8 +247,8 @@ int main() {
                     FD_SET(i, &clients_failure);
                 }
             }
-            FD_CLR(i, &mask); // TODO tutaj też jest coś sknocone, musimy poustawiać to w odpowiednich miejscach, bo jak pierwszy raz robię 0001nadawcaodbiorca to nie zwraca mi 1 lub 0 tylko generuje mi nowy numer
-            FD_SET(i, &wmask); // więc moim zdaniem to na pewno odpada
+            FD_CLR(i, &mask);
+            FD_SET(i, &wmask);
         }
     }
     return 0;
