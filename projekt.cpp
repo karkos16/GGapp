@@ -209,7 +209,7 @@ int main() {
                 _read(i, message);
                 if (strncmp(message.c_str(), "0000", 4) == 0) {
                     FD_SET(i, &clients_waiting_for_id);
-                    FD_SET(i, &wmask);
+                    // FD_SET(i, &wmask); duplikat?
                 } else if (strncmp(message.c_str(), "0001", 4) == 0) { // 
                     FD_SET(i, &wmask);
                     
@@ -239,6 +239,7 @@ int main() {
                                 flag = 1;
                                 break;
                             }
+                            // FD_CLR(i, &wmask);
                         } else {
                             continue;
                         }
@@ -253,7 +254,7 @@ int main() {
                 }
             }
             FD_CLR(i, &mask); // TODO tutaj też jest coś sknocone, musimy poustawiać to w odpowiednich miejscach, bo jak pierwszy raz robię 0001nadawcaodbiorca to nie zwraca mi 1 lub 0 tylko generuje mi nowy numer
-            FD_SET(i, &wmask);
+            FD_SET(i, &wmask); // więc moim zdaniem to na pewno odpada
         }
     }
     return 0;
