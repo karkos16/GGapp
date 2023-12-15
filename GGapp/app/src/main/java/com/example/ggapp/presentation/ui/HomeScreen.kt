@@ -1,8 +1,12 @@
 package com.example.ggapp.presentation.ui
 
 import android.annotation.SuppressLint
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -31,6 +36,7 @@ import com.example.ggapp.presentation.viewModels.factory.HomeViewModelFactory
 import com.example.ggapp.presentation.viewModels.factory.MainViewModelFactory
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -43,31 +49,46 @@ fun HomeScreen(
     val appContainer = remember { AppContainer(context) }
     val viewModel = appContainer.homeViewModel
 
+//    Get ID from shared preferences asynchronously
+    LaunchedEffect(Unit) {
+        while (viewModel.id.isEmpty()) {
+            viewModel.getIDFromPreferences()
+            delay(500)
+        }
+    }
 
+//    Checks if adding contact was successful
+    LaunchedEffect(viewModel.addingContactFailed) {
+        if (viewModel.addingContactFailed) {
+            Toast.makeText(context, "Kontakt juz istnije lub podane id jest błędne", Toast.LENGTH_SHORT).show()
+            viewModel.updateAddingContactStatus()
+        }
+    }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Row {
-                        Text(text = "GGapp")
-                        Spacer(modifier = Modifier.weight(0.2f))
-                        if (viewModel.id.isNotEmpty()) {
+            if (viewModel.id.isNotEmpty()) {
+                TopAppBar(
+                    title = {
+                        Row {
+                            Text(text = "GGapp")
+                            Spacer(modifier = Modifier.weight(0.2f))
                             Text(text = "Twoje id: ${viewModel.id}")
-                        } else {
-                            CircularProgressIndicator()
-                            LaunchedEffect(Unit) {
-//                                TODO: get id from preferences or find another way to get id
-                            }
-                        }
-                    } },
-                actions = {
-                    AddContactButton(viewModel)
-                }
-            )
+                        } },
+                    actions = {
+                        AddContactButton(viewModel)
+                    }
+                )
+            }
         },
         content = {
             Content(viewModel, navigator)
+            if (viewModel.id.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+
+                }
+            }
         }
     )
 

@@ -27,6 +27,10 @@ fun GetIDScreen(
     val appContainer = remember { AppContainer(context) }
     val viewModel = appContainer.mainViewModel
 
+    if (viewModel.getIDFromPreferences().isNotEmpty()) {
+        navigator.navigate(HomeScreenDestination)
+    }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,

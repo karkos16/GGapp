@@ -13,8 +13,12 @@ class CommunicatorUseCaseImpl(private val serverCommunicator: ServerCommunicator
         return serverCommunicator.sendMessage("0000\n\n")
     }
 
-    override suspend fun addFriend(friend: String): String {
-        TODO("Not yet implemented")
+    private fun validateID(id: String): Boolean {
+        return id.length == 4 && id.toIntOrNull() != null
+    }
+    override suspend fun addFriend(id: String, friendID: String): Boolean {
+        val response = serverCommunicator.sendMessage("0001$id$friendID\n\n")
+        return response == "1" && validateID(friendID)
     }
 
     override suspend fun getMessages(): String {

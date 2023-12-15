@@ -8,6 +8,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.ggapp.domain.repositories.interfaces.SharedPrefsRepository
 import com.example.ggapp.domain.usecases.interfaces.CommunicatorUseCase
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 data class UserInfo(
     val id: String
@@ -30,9 +34,29 @@ class HomeViewModel(
     var newContactID by mutableStateOf("")
         private set
 
+    var addingContactFailed by mutableStateOf(false)
+        private set
+
+    @OptIn(DelicateCoroutinesApi::class)
     fun addUser() {
-//        TODO: connect to server
-        contacts.add(UserInfo(newContactID))
+        if (contacts.contains(UserInfo(newContactID))) {
+            addingContactFailed = true
+            newContactID = ""
+            Log.d("HomeViewModel", "Kontakt już istnieje")
+            return
+        }
+
+        val tempContactID = newContactID
+        newContactID = ""
+        GlobalScope.launch(Dispatchers.IO) {
+            if (communicatorUseCase.addFriend(id, tempContactID)) {
+                Log.d("HomeViewModel", "Dodano kontakt")
+                contacts.add(UserInfo(tempContactID))
+            } else {
+                addingContactFailed = true
+                Log.d("HomeViewModel", "Nie dodano kontaktu")
+            }
+        }
     }
 
     fun showDialog(){
@@ -44,6 +68,7 @@ class HomeViewModel(
     }
 
     fun updateNewContactID(newValue: String) {
+        Log.d("HomeViewModel", "Nowe id: $newValue")
         newContactID = newValue
     }
 
@@ -51,5 +76,9 @@ class HomeViewModel(
         id = sharedPrefsRepository.getIDFromPreferences()
         Log.d("HomeViewModel", "Pobrano id z shared preferences: $id")
         return id
+    }
+
+    fun updateAddingContactStatus() {
+        addingContactFailed = false
     }
 }
