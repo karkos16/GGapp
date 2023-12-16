@@ -29,11 +29,6 @@ struct ClientsPair createClientsPair(const std::string& key, const std::string& 
     return {key, value};
 }
 
-// Funkcja usuwająca parę klucz-wartość
-void destroyClientsPair(const ClientsPair& pair) {
-    // No need to free strings as std::string handles memory automatically
-}
-
 struct Message {
     ClientsPair pair;
     std::string content;
@@ -41,10 +36,6 @@ struct Message {
 
 struct Message createMessage(const ClientsPair& pair, const std::string& content) {
     return {pair, content};
-}
-
-void destroyMessage(const Message& message) {
-    // No need to free strings as std::string handles memory automatically
 }
 
 int check_if_vector_contains_element(const std::vector<std::string>& vec, const std::string& element) {
@@ -65,7 +56,7 @@ int _write(int fd, const std::string& message) {
         }
         bytes_sent += bytes_sent_now;
     }
-    write(fd, "\n\n", 2); // End the stream with a newline character
+    write(fd, "\n\n", 2);
     return 1;
 }
 
@@ -118,32 +109,28 @@ int main() {
     int i;
     sockaddr_in saddr, caddr;
     timeval timeout;
-    fd_set mask, rmask, wmask, clients_waiting_for_id, clients_waiting_for_adding_contact, clients_failure, client_success;
+    fd_set mask, rmask, wmask, clients_waiting_for_id, clients_waiting_for_adding_contact, clients_failure, client_success, client_wants_messages;
     std::string message(128, '\0');
 
+    std::string allMessages`
     memset(&saddr, 0, sizeof(saddr));
-
     saddr.sin_family = AF_INET;
     saddr.sin_addr.s_addr = INADDR_ANY;
     saddr.sin_port = htons(1234);
-
     sfd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(sfd == -1) {
         perror("Creating socket failed");
         exit(1);
     }
     setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (char*)&on, sizeof(on));
-
     if(bind(sfd, (sockaddr*) &saddr, sizeof(saddr)) == -1) {
         std::cerr << "Bind failed" << std::endl;
         exit(1);
     }
-
     if (listen(sfd, MAX_CLIENTS) == -1) {
         std::cerr << "Listen failed" << std::endl;
         exit(1);
     }
-
     FD_ZERO(&mask);
     FD_ZERO(&rmask);
     FD_ZERO(&wmask);
@@ -151,8 +138,8 @@ int main() {
     FD_ZERO(&clients_waiting_for_adding_contact);
     FD_ZERO(&clients_failure);
     FD_ZERO(&client_success);
+    FD_ZERO(&client_wants_messages);
     fdmax = sfd;
-
     while(1) {
         FD_SET(sfd, &mask);
         rmask = mask;
@@ -162,7 +149,6 @@ int main() {
         if (rc == 0)
             continue;
         fda = rc;
-
         if (FD_ISSET(sfd, &rmask)) {
             fda -= 1;
             slt = sizeof(caddr);
@@ -170,7 +156,6 @@ int main() {
             FD_SET(cfd, &mask);
             if (cfd > fdmax) fdmax = cfd;
         }
-
         for (i = sfd+1; i <= fdmax && fda > 0; i++) {
             if (FD_ISSET(i, &wmask)) {
                 fda -= 1;
@@ -194,25 +179,30 @@ int main() {
                 } else if (FD_ISSET(i, &clients_failure)) {
                     _write(i, "0");
                     FD_CLR(i, &clients_failure);
+                } else if (FD_ISSET(i, &client_wants_messages)) {
+                    for (int i = 0; i < messages.size(); i++) {
+                        if (messages[i]->pair.key == message.substr(4, 4) || messages[i]->pair.key == message.substr(8, 4)) {
+                            if (messages[i]->pair.value == message.substr(4, 4) || messages[i]->pair.value == message.substr(8,4)) {
+                                _write(i, messages[i]->content);
+                                FD_CLR(i, &client_wants_messages);
+                                break;
+                            }
+                        }
+                    }
                 }
-
                 close(i);
                 FD_CLR(i, &wmask);
                 FD_CLR(i, &mask);
-
                 if (i == fdmax) {
                     while(fdmax > sfd && !FD_ISSET(fdmax, &mask)) {
                         fdmax -= 1;
                     }
                 }
             }
-
             if(FD_ISSET(i, &rmask)) {
                 _read(i, message);
-
                 if (strncmp(message.c_str(), "0000", 4) == 0) {
                     FD_SET(i, &clients_waiting_for_id);
-                    // FD_SET(i, &wmask); duplikat?
                 } else if (strncmp(message.c_str(), "0001", 4) == 0) {
                     // sprawdzamy teraz czy czterocyfrowy numer (po 0001xxxx) istnieje w wektorze clients
                     std::cout<<"Sprawdzam id" << message.substr(8, 4) << std::endl;
@@ -242,9 +232,6 @@ int main() {
                             if (messages[j]->pair.value == message.substr(4, 4) || messages[j]->pair.value == message.substr(8,4)) {
                                 std::string messageCopyWithoutZeros = remove_zeros(message).substr(12);
                                 messages[j]->content += message.substr(4, 4) + "klfjaklfsjalkfsjafklsaj\n" + messageCopyWithoutZeros + "kjasdflksajklafjkll\n";
-                                // messages[j]->content = concat(messages[j]->content, concat(message.substr(4, 4), "klfjaklfsjalkfsjafklsaj\n"));
-                                // messages[j]->content = concat(messages[j]->content, message.substr(12, 3) + "kjasdflksajklafjkll\n");
-                                // messages[j]->content += "kjasdflksajklafjkll\n"; // TODO uwaga na niedodające się taby jasny gwint
                                 FD_SET(i, &client_success);
                                 flag = 1;
                                 break;
@@ -254,6 +241,10 @@ int main() {
                     if (flag == 0) {
                         FD_SET(i, &clients_failure);
                     }
+
+                // szukanie wszystkich wiadomości numer-numer
+                } else if (strncmp(message.c_str(), "0003", 4) == 0) {
+                    FD_SET(i, &client_wants_messages);
                 } else {
                     FD_SET(i, &clients_failure);
                 }
