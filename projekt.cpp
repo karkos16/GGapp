@@ -112,7 +112,7 @@ int main() {
     fd_set mask, rmask, wmask, clients_waiting_for_id, clients_waiting_for_adding_contact, clients_failure, client_success, client_wants_messages;
     std::string message(128, '\0');
 
-    std::string allMessages`
+    std::string allMessages;
     memset(&saddr, 0, sizeof(saddr));
     saddr.sin_family = AF_INET;
     saddr.sin_addr.s_addr = INADDR_ANY;
@@ -180,10 +180,10 @@ int main() {
                     _write(i, "0");
                     FD_CLR(i, &clients_failure);
                 } else if (FD_ISSET(i, &client_wants_messages)) {
-                    for (int i = 0; i < messages.size(); i++) {
-                        if (messages[i]->pair.key == message.substr(4, 4) || messages[i]->pair.key == message.substr(8, 4)) {
-                            if (messages[i]->pair.value == message.substr(4, 4) || messages[i]->pair.value == message.substr(8,4)) {
-                                _write(i, messages[i]->content);
+                    for (int j = 0; j < clientPairIndex; j++) {
+                        if (messages[j]->pair.key == message.substr(4, 4) || messages[j]->pair.key == message.substr(8, 4)) {
+                            if (messages[j]->pair.value == message.substr(4, 4) || messages[j]->pair.value == message.substr(8,4)) {
+                                _write(i, messages[j]->content);
                                 FD_CLR(i, &client_wants_messages);
                                 break;
                             }
@@ -209,8 +209,8 @@ int main() {
                     if (check_if_vector_contains_element(clients, message.substr(8, 4))) {
                         int flag = 0;
                         FD_SET(i, &clients_waiting_for_adding_contact);
-                        for (int i = 0; i < clientPairs.size(); i++) {
-                            if ((clientPairs[i]->key == message.substr(4, 4) || clientPairs[i]->value == message.substr(4, 4) && (clientPairs[i]->key == message.substr(8, 4) || clientPairs[i]->value == message.substr(8, 4)))) {
+                        for (int i = 0; i < clientPairIndex; i++) {
+                            if ((clientPairs[i]->key == message.substr(4, 4) || clientPairs[i]->value == message.substr(4, 4)) && (clientPairs[i]->key == message.substr(8, 4) || clientPairs[i]->value == message.substr(8, 4))) {
                                 flag = 1;
                                 break;
                             }
