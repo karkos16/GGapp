@@ -217,11 +217,21 @@ int main() {
                     // sprawdzamy teraz czy czterocyfrowy numer (po 0001xxxx) istnieje w wektorze clients
                     std::cout<<"Sprawdzam id" << message.substr(8, 4) << std::endl;
                     if (check_if_vector_contains_element(clients, message.substr(8, 4))) {
+                        int flag = 0;
                         FD_SET(i, &clients_waiting_for_adding_contact);
-                        ClientsPair* pair = new ClientsPair(createClientsPair(message.substr(4,4), message.substr(8,4)));
-                        clientPairs[clientPairIndex++] = pair;
-                        Message* newMessage = new Message(createMessage(*pair, ""));
-                        messages[messageIndex++] = newMessage;
+                        for (int i = 0; i < clientPairs.size(); i++) {
+                            if ((clientPairs[i]->key == message.substr(4, 4) || clientPairs[i]->value == message.substr(4, 4) && (clientPairs[i]->key == message.substr(8, 4) || clientPairs[i]->value == message.substr(8, 4)))) {
+                                flag = 1;
+                                break;
+                            }
+                        }
+        
+                        if (flag == 0) {
+                            ClientsPair* pair = new ClientsPair(createClientsPair(message.substr(4,4), message.substr(8,4)));
+                            clientPairs[clientPairIndex++] = pair;
+                            Message* newMessage = new Message(createMessage(*pair, ""));
+                            messages[messageIndex++] = newMessage;
+                        }
                     } else { // gdy nie istnieje taki czat
                         FD_SET(i, &clients_failure);
                     }
@@ -244,13 +254,6 @@ int main() {
                     if (flag == 0) {
                         FD_SET(i, &clients_failure);
                     }
-                } else if (strncmp(message.c_str(), "0003", 4)) {
-                    std::string number = message.substr(4, 4);
-                    for (size_t i = 0; i < count; i++)
-                    {
-                        /* code */
-                    }
-                    
                 } else {
                     FD_SET(i, &clients_failure);
                 }
