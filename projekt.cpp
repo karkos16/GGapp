@@ -89,6 +89,13 @@ std::string concat(const std::string& s1, const std::string& s2) {
     return s1 + s2;
 }
 
+std::string remove_zeros(const std::string& s) {
+    std::string result = s;
+    // result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
+    result.erase(std::remove(result.begin(), result.end(), '\0'), result.end());
+    return result;
+}
+
 std::string generateNumber() {
     srand(time(NULL));
     int randomNumber = rand() % 8999 + 1001;
@@ -101,7 +108,7 @@ int main() {
     std::vector<ClientsPair*> clientPairs(6442);
     int clientPairIndex = 0;
     int clientIndex = 0;
-    int activeClientIndex = 0;
+    int messageIndex = 0;
     socklen_t slt;
     int on = 1;
     int sfd, cfd;
@@ -111,8 +118,8 @@ int main() {
     int i;
     sockaddr_in saddr, caddr;
     timeval timeout;
-    fd_set mask, rmask, wmask, clients_waiting_for_id, clients_waiting_for_adding_contact, clients_failure;
-    std::string message(32, '\0');
+    fd_set mask, rmask, wmask, clients_waiting_for_id, clients_waiting_for_adding_contact, clients_failure, client_success;
+    std::string message(128, '\0');
 
     memset(&saddr, 0, sizeof(saddr));
 
@@ -143,6 +150,7 @@ int main() {
     FD_ZERO(&clients_waiting_for_id);
     FD_ZERO(&clients_waiting_for_adding_contact);
     FD_ZERO(&clients_failure);
+    FD_ZERO(&client_success);
     fdmax = sfd;
 
     while(1) {
@@ -212,37 +220,37 @@ int main() {
                         FD_SET(i, &clients_waiting_for_adding_contact);
                         ClientsPair* pair = new ClientsPair(createClientsPair(message.substr(4,4), message.substr(8,4)));
                         clientPairs[clientPairIndex++] = pair;
+                        Message* newMessage = new Message(createMessage(*pair, ""));
+                        messages[messageIndex++] = newMessage;
                     } else { // gdy nie istnieje taki czat
                         FD_SET(i, &clients_failure);
                     }
                 } else if (strncmp(message.c_str(), "0002", 4) == 0) {
-                    FD_SET(i, &wmask);
                     int flag = 0;
-                    for (int j = 0; j < INT_MAX; j++) {
-                        if (messages[j]->pair.key == message.substr(3, 4)) {
-                            if (messages[j]->pair.value == message.substr(7, 4)) {
-                                messages[j]->content = concat(messages[j]->content, message); // TODO ale kto pisze?
-                                flag = 1;
-                                messages[j]->content = concat(messages[j]->content, "\t\t"); // dodajemy znacznik końca wiadomości
-                                break;
-                            }
-                        } else if (messages[j]->pair.key == message.substr(7, 4)) { // TODO czy musimy sprawdzać odwrotność?
-                            if (messages[j]->pair.value == message.substr(3, 4)) {
-                                messages[j]->content = concat(messages[j]->content, message); // TODO ale kto pisze?
-                                messages[j]->content = concat(messages[j]->content, "\t\t"); // dodajemy znacznik końca wiadomości
+                    for (int j = 0; j < messages.size(); j++) {
+                        if (messages[j]->pair.key == message.substr(4, 4) || messages[j]->pair.key == message.substr(8, 4)) {
+                            if (messages[j]->pair.value == message.substr(4, 4) || messages[j]->pair.value == message.substr(8,4)) {
+                                std::string messageCopyWithoutZeros = remove_zeros(message).substr(12);
+                                messages[j]->content += message.substr(4, 4) + "klfjaklfsjalkfsjafklsaj\n" + messageCopyWithoutZeros + "kjasdflksajklafjkll\n";
+                                // messages[j]->content = concat(messages[j]->content, concat(message.substr(4, 4), "klfjaklfsjalkfsjafklsaj\n"));
+                                // messages[j]->content = concat(messages[j]->content, message.substr(12, 3) + "kjasdflksajklafjkll\n");
+                                // messages[j]->content += "kjasdflksajklafjkll\n"; // TODO uwaga na niedodające się taby jasny gwint
+                                FD_SET(i, &client_success);
                                 flag = 1;
                                 break;
                             }
-                            // FD_CLR(i, &wmask);
-                        } else {
-                            continue;
                         }
                     }
                     if (flag == 0) {
-                        Message* newMessage = new Message(createMessage(createClientsPair(message.substr(3, 4), message.substr(7, 4)), message.substr(11)));
-                        newMessage->content = concat(newMessage->content, "\t\t"); // dodajemy znacznik końca wiadomości
-                        messages[activeClientIndex++] = newMessage;
+                        FD_SET(i, &clients_failure);
                     }
+                } else if (strncmp(message.c_str(), "0003", 4)) {
+                    std::string number = message.substr(4, 4);
+                    for (size_t i = 0; i < count; i++)
+                    {
+                        /* code */
+                    }
+                    
                 } else {
                     FD_SET(i, &clients_failure);
                 }
