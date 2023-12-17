@@ -15,6 +15,7 @@
 #include <time.h>
 #include <climits>
 #include <algorithm>
+#include <map>
 
 #define MAX_CLIENTS 10
 
@@ -97,6 +98,7 @@ int main() {
     std::vector<std::string> clients(1024, "0");
     std::vector<Message*> messages(6442, 0);
     std::vector<ClientsPair*> clientPairs(6442);
+    std::map<int, std::string> descriptorsToMessageMap;
     int clientPairIndex = 0;
     int clientIndex = 0;
     int messageIndex = 0;
@@ -112,7 +114,6 @@ int main() {
     fd_set mask, rmask, wmask, clients_waiting_for_id, clients_waiting_for_adding_contact, clients_failure, client_success, client_wants_messages;
     std::string message(128, '\0');
 
-    std::string allMessages;
     memset(&saddr, 0, sizeof(saddr));
     saddr.sin_family = AF_INET;
     saddr.sin_addr.s_addr = INADDR_ANY;
@@ -157,6 +158,8 @@ int main() {
             if (cfd > fdmax) fdmax = cfd;
         }
         for (i = sfd+1; i <= fdmax && fda > 0; i++) {
+
+            // Obsługa deskryptora do zapisu
             if (FD_ISSET(i, &wmask)) {
                 fda -= 1;
                 if (FD_ISSET(i, &clients_waiting_for_id)) { 
@@ -180,16 +183,16 @@ int main() {
                     _write(i, "0");
                     FD_CLR(i, &clients_failure);
                 } else if (FD_ISSET(i, &client_wants_messages)) {
-                    for (int j = 0; j < clientPairIndex; j++) {
-                        if (messages[j]->pair.key == message.substr(4, 4) || messages[j]->pair.key == message.substr(8, 4)) {
-                            if (messages[j]->pair.value == message.substr(4, 4) || messages[j]->pair.value == message.substr(8,4)) {
-                                _write(i, messages[j]->content);
-                                FD_CLR(i, &client_wants_messages);
-                                break;
-                            }
-                        }
-                    }
+                    _write(i, descriptorsToMessageMap[i]);
+                    FD_CLR(i, &client_wants_messages);
+                    descriptorsToMessageMap.erase(i);
+                } else if (FD_ISSET(i, &client_success)) {
+                    _write(i, "1");
+                    FD_CLR(i, &client_success);
+                } else {
+                    _write(i, "0");
                 }
+
                 close(i);
                 FD_CLR(i, &wmask);
                 FD_CLR(i, &mask);
@@ -199,6 +202,8 @@ int main() {
                     }
                 }
             }
+
+            // Obsługa deskryptora do odczytu
             if(FD_ISSET(i, &rmask)) {
                 _read(i, message);
                 if (strncmp(message.c_str(), "0000", 4) == 0) {
@@ -227,7 +232,7 @@ int main() {
                     }
                 } else if (strncmp(message.c_str(), "0002", 4) == 0) {
                     int flag = 0;
-                    for (int j = 0; j < messages.size(); j++) {
+                    for (int j = 0; j < messageIndex; j++) {
                         if (messages[j]->pair.key == message.substr(4, 4) || messages[j]->pair.key == message.substr(8, 4)) {
                             if (messages[j]->pair.value == message.substr(4, 4) || messages[j]->pair.value == message.substr(8,4)) {
                                 std::string messageCopyWithoutZeros = remove_zeros(message).substr(12);
@@ -244,7 +249,20 @@ int main() {
 
                 // szukanie wszystkich wiadomości numer-numer
                 } else if (strncmp(message.c_str(), "0003", 4) == 0) {
-                    FD_SET(i, &client_wants_messages);
+                    std::string sender = message.substr(4, 4);
+                    std::string receiver = message.substr(8, 4);
+                    std::string allMessages = "";
+
+                    for (int j = 0; j < messageIndex; j++) {
+                        if (messages[j]->pair.key == sender || messages[j]->pair.key == receiver) {
+                            if (messages[j]->pair.value == sender || messages[j]->pair.value == receiver) {
+                                allMessages += messages[j]->content;
+                                descriptorsToMessageMap.insert(std::pair<int, std::string>(i, allMessages));
+                                FD_SET(i, &client_wants_messages);
+                                break;
+                            }
+                        }
+                    }
                 } else {
                     FD_SET(i, &clients_failure);
                 }
