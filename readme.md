@@ -2,7 +2,7 @@
 
 ## Opis działania + opis protokołu
 
-Serwer inicjalizuje pusty ciąg allMessages, który będzie przechowywał wszystkie wiadomości do wysłania. Wykorzystany został protokół TCP do komunikacji klient-serwer.
+Wykorzystany został protokół TCP do komunikacji klient-serwer.
 
 Klient, aby uzyskać swój numer, wysyła do serwera o numerze portu 1234 wiadomość z treścią "0000". Serwer odpowiada wiadomością z numerem klienta.
 Wówczas klient może już wysyłać wiadomości do serwera, który je dodaje do allMessages.
@@ -27,3 +27,15 @@ nr_kontaktuoiaiudusj\n
 ## Implementacja funkcji _write i _read
 
 Funkcja _read charakteryzuje się tym, że czyta dopóki nie natknie się na podwójny znak nowej linii charakteryzujący koniec wiadomości. Wówczas zwraca odczytaną wiadomość. Funkcja _write charakteryzuje się tym, że dopisuje do wiadomości dwa razy znak nowej linii.
+
+## Sposób kompilacji
+
+```bash
+g++ -o server server.cpp -lpthread -Wall
+```
+
+Utworzy się plik o nazwie serwer, który teraz można uruchomić w terminalu na Linuxie:
+
+```bash
+./server
+```
