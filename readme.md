@@ -6,7 +6,7 @@ Wykorzystany został protokół TCP do komunikacji klient-serwer.
 
 Klient, aby uzyskać swój numer, wysyła do serwera o numerze portu 1234 wiadomość z treścią "0000". Serwer odpowiada wiadomością z numerem klienta.
 Wówczas klient może już wysyłać wiadomości do serwera, który je dodaje do allMessages.
-Aby "dodać do kontaktów", klient wysyła do serwera wiadomość z treścią "0001", a serwer odpowiada wiadomością 1 w przypadku, gdy klient o podanym numerze istnieje, a 0 w przeciwnym wypadku. Wówczas klient może wysyłać wiadomości do innego klienta, który je odbiera.
+Aby utworzyć nową, pustą rozmowę, klient wysyła do serwera wiadomość z treścią "0001" z numerami swoim i odbiorcy, a serwer odpowiada wiadomością 1 w przypadku, gdy klient o podanym numerze istnieje, a 0 w przeciwnym wypadku. Wówczas klient może wysyłać wiadomości do innego klienta, który je odbiera.
 Do wysyłania wiadomości należy wysłać do serwera wiadomość z treścią "0002", numerem nadawcy i odbiorcy oraz treścią wiadomości. Serwer dodaje wiadomość do wektora z wiadomości dla danej pary. Gdy nie uda się znaleźć pary, to zwracana jest pusta odpowiedź.
 
 W celu uzyskania wiadomości, klient wysyła do serwera wiadomość z treścią "0003" i numerem klienta oraz numerem odbiorcy. Serwer odpowiada wiadomością zawierającą wszystkie wiadomości dla danego klienta. W przypadku, gdy nie ma wiadomości, serwer zwraca pustą wiadomość.
@@ -34,7 +34,7 @@ Funkcja _read charakteryzuje się tym, że czyta dopóki nie natknie się na pod
 g++ -o server server.cpp -lpthread -Wall
 ```
 
-Utworzy się plik o nazwie serwer, który teraz można uruchomić w terminalu na Linuxie:
+Utworzy się plik o nazwie server, który teraz można uruchomić w terminalu na Linuxie:
 
 ```bash
 ./server
