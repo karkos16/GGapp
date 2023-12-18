@@ -11,7 +11,8 @@ Do wysyłania wiadomości należy wysłać do serwera wiadomość z treścią "0
 
 W celu uzyskania wiadomości, klient wysyła do serwera wiadomość z treścią "0003" i numerem klienta oraz numerem odbiorcy. Serwer odpowiada wiadomością zawierającą wszystkie wiadomości dla danego klienta. W przypadku, gdy nie ma wiadomości, serwer zwraca pustą wiadomość.
 
-Można też dodawać numery do kontaktów po stronie serwera. W tym celu należy wysłać do serwera wiadomość z treścią "0004" i numerem klienta. Serwer zapisuje wszystkie numery, z którym klient rozmawiał.
+Można też pobrać numery "w kontaktach" z serwera, na przykład po ponownym uruchomieniu aplikacji. W tym celu należy wysłać do serwera wiadomość z treścią "0004" i numerem klienta. Serwer zwraca wszystkie numery, z którym klient rozmawiał.
+
 ## Szkielet wiadomości
 
 ```text
