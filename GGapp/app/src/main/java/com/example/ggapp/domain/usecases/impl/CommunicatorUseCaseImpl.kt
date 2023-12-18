@@ -1,11 +1,9 @@
 package com.example.ggapp.domain.usecases.impl
 
-import android.util.Log
 import com.example.ggapp.domain.repositories.impl.ServerCommunicatorImpl
 import com.example.ggapp.domain.usecases.interfaces.CommunicatorUseCase
 import com.example.ggapp.presentation.viewModels.Message
 import com.example.ggapp.presentation.viewModels.UserInfo
-import kotlinx.coroutines.delay
 
 class CommunicatorUseCaseImpl(private val serverCommunicator: ServerCommunicatorImpl) :
     CommunicatorUseCase {
@@ -32,14 +30,11 @@ class CommunicatorUseCaseImpl(private val serverCommunicator: ServerCommunicator
     }
 
     private fun processMessageResponse(response: String): List<Message> {
-        Log.d("CommunicatorUseCaseImpl", "Otrzymano wiadomosci: " + response)
         if (response == "NONE\n") {
             return listOf()
         }
         val resultList: MutableList<Message> = mutableListOf()
         val messageList = response.removeSuffix("kjasdflksajklafjkll\n").split("kjasdflksajklafjkll\n")
-        Log.d("CommunicatorUseCaseImpl", "Liczba pobranych wiadomosci: " + messageList.size.toString())
-        Log.d("CommunicatorUseCaseImpl", "Pobrane wiadomosci: $messageList")
         for (message in messageList) {
             val messageParts = message.split("klfjaklfsjalkfsjafklsaj\n")
             val sender = messageParts[0]
@@ -61,14 +56,11 @@ class CommunicatorUseCaseImpl(private val serverCommunicator: ServerCommunicator
     }
 
     private fun processContactsResponse(response: String): List<UserInfo> {
-        Log.d("CommunicatorUseCaseImpl", "Otrzymano kontakty: " + response)
         if (response == "NONE\n\n") {
             return listOf()
         }
         val resultList: MutableList<UserInfo> = mutableListOf()
         val contactList = response.removeSuffix("oiaiudusj\n").split("oiaiudusj\n")
-        Log.d("CommunicatorUseCaseImpl", "Liczba pobranych kontaktow: " + contactList.size.toString())
-        Log.d("CommunicatorUseCaseImpl", "Pobrane kontakty: $contactList")
         for (contact in contactList) {
             resultList.add(UserInfo(contact))
         }

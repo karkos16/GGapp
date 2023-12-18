@@ -1,6 +1,5 @@
 package com.example.ggapp.presentation.viewModels
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +50,7 @@ class ConversationViewModel(
 
     @OptIn(DelicateCoroutinesApi::class)
     fun getMessagesFromServer(contactID: String) {
-        val job = GlobalScope.launch(Dispatchers.IO) {
+        GlobalScope.launch(Dispatchers.IO) {
             val id = sharedPrefsRepository.getIDFromPreferences()
             val gotMessages = communicatorUseCase.getMessages(id, contactID)
             messages.clear()

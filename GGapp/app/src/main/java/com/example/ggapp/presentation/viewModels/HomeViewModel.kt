@@ -1,6 +1,5 @@
 package com.example.ggapp.presentation.viewModels
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,7 +44,6 @@ class HomeViewModel(
         if (contacts.contains(UserInfo(newContactID))) {
             addingContactFailed = true
             newContactID = ""
-            Log.d("HomeViewModel", "Kontakt już istnieje")
             return
         }
 
@@ -53,12 +51,10 @@ class HomeViewModel(
         newContactID = ""
         GlobalScope.launch(Dispatchers.IO) {
             if (communicatorUseCase.addFriend(id, tempContactID)) {
-                Log.d("HomeViewModel", "Dodano kontakt")
                 contacts.add(UserInfo(tempContactID))
                 getContacts()
             } else {
                 addingContactFailed = true
-                Log.d("HomeViewModel", "Nie dodano kontaktu")
             }
         }
     }
@@ -72,13 +68,11 @@ class HomeViewModel(
     }
 
     fun updateNewContactID(newValue: String) {
-        Log.d("HomeViewModel", "Nowe id: $newValue")
         newContactID = newValue
     }
 
     fun getIDFromPreferences(): String {
         id = sharedPrefsRepository.getIDFromPreferences()
-        Log.d("HomeViewModel", "Pobrano id z shared preferences: $id")
         return id
     }
 

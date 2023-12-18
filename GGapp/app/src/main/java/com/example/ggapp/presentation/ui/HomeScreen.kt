@@ -91,7 +91,6 @@ fun HomeScreen(
             if (viewModel.id.isEmpty() or !viewModel.fetchingContactsEnded) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
-
                 }
             }
         }
