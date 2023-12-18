@@ -28,6 +28,7 @@ fun GetIDScreen(
     val viewModel = appContainer.mainViewModel
 
     if (viewModel.getIDFromPreferences().isNotEmpty()) {
+        navigator.popBackStack(GetIDScreenDestination, true)
         navigator.navigate(HomeScreenDestination)
     }
 

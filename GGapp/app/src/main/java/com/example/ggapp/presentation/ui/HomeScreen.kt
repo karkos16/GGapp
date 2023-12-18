@@ -55,6 +55,11 @@ fun HomeScreen(
             viewModel.getIDFromPreferences()
             delay(500)
         }
+        while (!viewModel.fetchingContactsEnded) {
+            viewModel.getContacts()
+            delay(500)
+            viewModel.updateFetchingContactsStatus()
+        }
     }
 
 //    Checks if adding contact was successful
@@ -67,7 +72,7 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            if (viewModel.id.isNotEmpty()) {
+            if (viewModel.id.isNotEmpty() or viewModel.fetchingContactsEnded) {
                 TopAppBar(
                     title = {
                         Row {
@@ -83,7 +88,7 @@ fun HomeScreen(
         },
         content = {
             Content(viewModel, navigator)
-            if (viewModel.id.isEmpty()) {
+            if (viewModel.id.isEmpty() or !viewModel.fetchingContactsEnded) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
 

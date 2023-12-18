@@ -71,6 +71,7 @@ int _read(int fd, std::string& buffer) {
         }
         bytes_received += bytes_received_now;
         if (buffer[bytes_received - 1] == '\n' && buffer[bytes_received - 2] == '\n') {
+            buffer.erase(bytes_received - 2, 2);
             break;
         }
     }
@@ -99,6 +100,7 @@ int main() {
     std::vector<Message*> messages(6442, 0);
     std::vector<ClientsPair*> clientPairs(6442);
     std::map<int, std::string> descriptorsToMessageMap;
+    std::map<int, std::string> descrtiptorsToContactsMap;
     int clientPairIndex = 0;
     int clientIndex = 0;
     int messageIndex = 0;
@@ -111,7 +113,7 @@ int main() {
     int i;
     sockaddr_in saddr, caddr;
     timeval timeout;
-    fd_set mask, rmask, wmask, clients_waiting_for_id, clients_waiting_for_adding_contact, clients_failure, client_success, client_wants_messages;
+    fd_set mask, rmask, wmask, clients_waiting_for_id, clients_waiting_for_adding_contact, clients_failure, client_success, client_wants_messages, client_wants_contacts;
     std::string message(128, '\0');
 
     memset(&saddr, 0, sizeof(saddr));
@@ -132,6 +134,7 @@ int main() {
         std::cerr << "Listen failed" << std::endl;
         exit(1);
     }
+
     FD_ZERO(&mask);
     FD_ZERO(&rmask);
     FD_ZERO(&wmask);
@@ -140,6 +143,8 @@ int main() {
     FD_ZERO(&clients_failure);
     FD_ZERO(&client_success);
     FD_ZERO(&client_wants_messages);
+    FD_ZERO(&client_wants_contacts);
+
     fdmax = sfd;
     while(1) {
         FD_SET(sfd, &mask);
@@ -186,6 +191,10 @@ int main() {
                     _write(i, descriptorsToMessageMap[i]);
                     FD_CLR(i, &client_wants_messages);
                     descriptorsToMessageMap.erase(i);
+                } else if (FD_ISSET(i, &client_wants_contacts)) {
+                    _write(i, descrtiptorsToContactsMap[i]);
+                    FD_CLR(i, &client_wants_contacts);
+                    descrtiptorsToContactsMap.erase(i);
                 } else if (FD_ISSET(i, &client_success)) {
                     _write(i, "1");
                     FD_CLR(i, &client_success);
@@ -205,12 +214,12 @@ int main() {
 
             // Obsługa deskryptora do odczytu
             if(FD_ISSET(i, &rmask)) {
+                message = std::string(128, '\0');
                 _read(i, message);
                 if (strncmp(message.c_str(), "0000", 4) == 0) {
                     FD_SET(i, &clients_waiting_for_id);
                 } else if (strncmp(message.c_str(), "0001", 4) == 0) {
                     // sprawdzamy teraz czy czterocyfrowy numer (po 0001xxxx) istnieje w wektorze clients
-                    std::cout<<"Sprawdzam id" << message.substr(8, 4) << std::endl;
                     if (check_if_vector_contains_element(clients, message.substr(8, 4))) {
                         int flag = 0;
                         FD_SET(i, &clients_waiting_for_adding_contact);
@@ -236,6 +245,7 @@ int main() {
                         if (messages[j]->pair.key == message.substr(4, 4) || messages[j]->pair.key == message.substr(8, 4)) {
                             if (messages[j]->pair.value == message.substr(4, 4) || messages[j]->pair.value == message.substr(8,4)) {
                                 std::string messageCopyWithoutZeros = remove_zeros(message).substr(12);
+                                std::cout << "Wiadomosc do wyslania: " << messageCopyWithoutZeros << std::endl;
                                 messages[j]->content += message.substr(4, 4) + "klfjaklfsjalkfsjafklsaj\n" + messageCopyWithoutZeros + "kjasdflksajklafjkll\n";
                                 FD_SET(i, &client_success);
                                 flag = 1;
@@ -257,12 +267,32 @@ int main() {
                         if (messages[j]->pair.key == sender || messages[j]->pair.key == receiver) {
                             if (messages[j]->pair.value == sender || messages[j]->pair.value == receiver) {
                                 allMessages += messages[j]->content;
+                                if (allMessages.length() == 0) {
+                                    allMessages = "NONE";
+                                }
+                                std::cout<< allMessages << std::endl;
                                 descriptorsToMessageMap.insert(std::pair<int, std::string>(i, allMessages));
                                 FD_SET(i, &client_wants_messages);
                                 break;
                             }
                         }
                     }
+                } else if (strncmp(message.c_str(), "0004", 4) == 0) {
+                    std::string sender = message.substr(4, 4);
+                    std::string allContacts = "";
+
+                    for (int j = 0; j < clientPairIndex; j++) {
+                        if (clientPairs[j]->key == sender) {
+                            allContacts += clientPairs[j]->value + "oiaiudusj\n";
+                        } else if (clientPairs[j]->value == sender) {
+                            allContacts += clientPairs[j]->key + "oiaiudusj\n";
+                        }
+                    }
+                    if (allContacts.length() == 0) {
+                        allContacts = "NONE";
+                    }
+                    descrtiptorsToContactsMap.insert(std::pair<int, std::string>(i, allContacts));
+                    FD_SET(i, &client_wants_contacts);
                 } else {
                     FD_SET(i, &clients_failure);
                 }

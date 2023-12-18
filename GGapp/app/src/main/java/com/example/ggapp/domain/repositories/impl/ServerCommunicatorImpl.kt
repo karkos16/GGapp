@@ -7,6 +7,7 @@ import java.io.InputStreamReader
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.net.Socket
+import java.nio.CharBuffer
 
 class ServerCommunicatorImpl(
     private val customHost: String,
@@ -28,11 +29,13 @@ class ServerCommunicatorImpl(
         val writer = OutputStreamWriter(socket.getOutputStream())
         Log.d("ServerCommunicatorImpl", "Streams created")
 
+//        TODO: change write to writeBytes
         writer.write(messageToSend)
-        Log.d("ServerCommunicatorImpl", "Message sent")
+        Log.d("ServerCommunicatorImpl", "Message sent $messageToSend")
         writer.flush()
 
-        val serverResponse = reader.readLine()
+        val serverResponse = readTillEndOfMessage(reader)
+
         Log.d("ServerCommunicatorImpl", "Response received $serverResponse")
 
         reader.close()
@@ -40,5 +43,25 @@ class ServerCommunicatorImpl(
         socket.close()
 
         return serverResponse
+    }
+
+    private fun readTillEndOfMessage(reader: BufferedReader): String {
+        val buffer = CharArray(1024)
+        val serverResponse = StringBuilder()
+        var bytesRead: Int
+        var foundEndOfMessage = false
+
+        while (reader.read(buffer).also { bytesRead = it } != -1 && !foundEndOfMessage) {
+            serverResponse.appendRange(buffer, 0, bytesRead)
+
+            if (serverResponse.contains("\n\n")) {
+                foundEndOfMessage = true
+
+                serverResponse.setLength(serverResponse.indexOf("\n\n"))
+
+                break
+            }
+        }
+        return serverResponse.toString()
     }
 }

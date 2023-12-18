@@ -37,6 +37,9 @@ class HomeViewModel(
     var addingContactFailed by mutableStateOf(false)
         private set
 
+    var fetchingContactsEnded by mutableStateOf(false)
+        private set
+
     @OptIn(DelicateCoroutinesApi::class)
     fun addUser() {
         if (contacts.contains(UserInfo(newContactID))) {
@@ -52,6 +55,7 @@ class HomeViewModel(
             if (communicatorUseCase.addFriend(id, tempContactID)) {
                 Log.d("HomeViewModel", "Dodano kontakt")
                 contacts.add(UserInfo(tempContactID))
+                getContacts()
             } else {
                 addingContactFailed = true
                 Log.d("HomeViewModel", "Nie dodano kontaktu")
@@ -80,5 +84,18 @@ class HomeViewModel(
 
     fun updateAddingContactStatus() {
         addingContactFailed = false
+    }
+
+    fun updateFetchingContactsStatus() {
+        fetchingContactsEnded = true
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun getContacts() {
+        GlobalScope.launch(Dispatchers.IO) {
+            val receivedContacts = communicatorUseCase.getContacts(id)
+            contacts.clear()
+            contacts.addAll(receivedContacts)
+        }
     }
 }
