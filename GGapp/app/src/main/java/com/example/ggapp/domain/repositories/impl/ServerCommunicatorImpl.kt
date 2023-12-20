@@ -25,7 +25,6 @@ class ServerCommunicatorImpl(
         val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
         val writer = OutputStreamWriter(socket.getOutputStream())
 
-//        TODO: change write to writeBytes
         writer.write(messageToSend)
         writer.flush()
 

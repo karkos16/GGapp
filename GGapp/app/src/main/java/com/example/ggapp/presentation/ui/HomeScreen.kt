@@ -1,7 +1,6 @@
 package com.example.ggapp.presentation.ui
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -32,8 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.example.ggapp.presentation.di.AppContainer
 import com.example.ggapp.presentation.ui.destinations.ConversationScreenDestination
 import com.example.ggapp.presentation.viewModels.HomeViewModel
-import com.example.ggapp.presentation.viewModels.factory.HomeViewModelFactory
-import com.example.ggapp.presentation.viewModels.factory.MainViewModelFactory
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.delay
@@ -149,8 +146,10 @@ fun Content(viewModel: HomeViewModel, navigator: DestinationsNavigator) {
         .padding(top = 50.dp)) {
         contacts.forEach {userInfo ->
             item {
-                TextButton(onClick = { navigator.navigate(ConversationScreenDestination(contactID = userInfo.id)) }) {
-                    Text(text = userInfo.id)
+                if (!userInfo.id.contains("NONE")) {
+                    TextButton(onClick = { navigator.navigate(ConversationScreenDestination(contactID = userInfo.id)) }) {
+                        Text(text = userInfo.id)
+                    }
                 }
             }
 

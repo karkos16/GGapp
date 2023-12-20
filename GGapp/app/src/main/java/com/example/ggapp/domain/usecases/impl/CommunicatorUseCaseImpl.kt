@@ -30,7 +30,7 @@ class CommunicatorUseCaseImpl(private val serverCommunicator: ServerCommunicator
     }
 
     private fun processMessageResponse(response: String): List<Message> {
-        if (response == "NONE\n") {
+        if (response.contains("NONE\n")) {
             return listOf()
         }
         val resultList: MutableList<Message> = mutableListOf()
