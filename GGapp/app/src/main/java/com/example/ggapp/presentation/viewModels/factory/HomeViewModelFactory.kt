@@ -6,6 +6,10 @@ import com.example.ggapp.domain.repositories.interfaces.SharedPrefsRepository
 import com.example.ggapp.domain.usecases.interfaces.CommunicatorUseCase
 import com.example.ggapp.presentation.viewModels.HomeViewModel
 
+/**
+ * Factory for creating a [HomeViewModel] with a constructor that takes a
+ * [CommunicatorUseCase] and a [SharedPrefsRepository].
+ */
 class HomeViewModelFactory(
     private val communicatorUseCase: CommunicatorUseCase,
     private val sharedPrefsRepository: SharedPrefsRepository

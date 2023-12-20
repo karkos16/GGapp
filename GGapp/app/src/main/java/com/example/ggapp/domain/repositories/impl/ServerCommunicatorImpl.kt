@@ -7,6 +7,11 @@ import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.net.Socket
 
+/**
+ * Implementation of [ServerCommunicator] interface.
+ * @param customHost - host of the server to connect to.
+ * @param customPort - port of the server to connect to.
+ */
 class ServerCommunicatorImpl(
     private val customHost: String,
     private val customPort: Int
@@ -19,6 +24,7 @@ class ServerCommunicatorImpl(
     private lateinit var socket: Socket
     private lateinit var output: OutputStream
     private lateinit var input: BufferedReader
+
     override fun sendMessage(messageToSend: String): String {
         socket = Socket(host, port)
 

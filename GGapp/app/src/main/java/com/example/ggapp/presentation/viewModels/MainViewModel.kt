@@ -8,6 +8,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for the [MainActivity].
+ *
+ * @param communicatorUseCase the [CommunicatorUseCase] to be used.
+ * @param sharedPrefsRepository the [SharedPrefsRepository] to be used.
+ */
 class MainViewModel(
     private val communicatorUseCase: CommunicatorUseCase,
     private val sharedPrefsRepository: SharedPrefsRepository

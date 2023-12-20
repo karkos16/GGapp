@@ -8,6 +8,11 @@ import com.example.ggapp.presentation.viewModels.ConversationViewModel
 import com.example.ggapp.presentation.viewModels.HomeViewModel
 import com.example.ggapp.presentation.viewModels.MainViewModel
 
+/**
+ * Container for all the dependencies of the app.
+ *
+ * @param context the [Context] of the app.
+ */
 class AppContainer(private val context: Context) {
 
     private val sharedPreferencesRepository: SharedPrefsRepositoryImpl by lazy {

@@ -11,6 +11,9 @@ import com.example.ggapp.presentation.ui.NavGraphs
 import com.example.ggapp.ui.theme.GGappTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
 
+/**
+ * The main activity of the app.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

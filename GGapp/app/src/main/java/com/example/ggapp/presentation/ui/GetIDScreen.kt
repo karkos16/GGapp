@@ -17,6 +17,11 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 
+/**
+ * Screen that displays button to get ID
+ *
+ * @param navigator the [DestinationsNavigator] that will be used to navigate to other screens.
+ */
 @RootNavGraph(start = true)
 @Destination
 @Composable

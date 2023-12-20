@@ -37,6 +37,12 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.delay
 
+/**
+ * Screen that displays the conversation with a contact.
+ *
+ * @param navigator the [DestinationsNavigator] that will be used to navigate to other screens.
+ * @param contactID the ID of the contact to display the conversation with.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination
 @Composable

@@ -35,6 +35,12 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.delay
 
+
+/**
+ * Screen that displays the list of contacts.
+ *
+ * @param navigator the [DestinationsNavigator] that will be used to navigate to other screens.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Destination
@@ -96,6 +102,11 @@ fun HomeScreen(
     AddContactDialog(viewModel)
 }
 
+/**
+ * Button that opens a dialog to add a new contact.
+ *
+ * @param viewModel the [HomeViewModel] that will be used to add a new contact.
+ */
 @Composable
 fun AddContactButton(viewModel: HomeViewModel) {
     IconButton(onClick = { viewModel.showDialog() }) {
@@ -106,6 +117,11 @@ fun AddContactButton(viewModel: HomeViewModel) {
     }
 }
 
+/**
+ * Dialog that allows the user to add a new contact.
+ *
+ * @param viewModel the [HomeViewModel] that will be used to add a new contact.
+ */
 @Composable
 fun AddContactDialog(viewModel: HomeViewModel) = if(viewModel.showDialog) {
     AlertDialog(
@@ -136,6 +152,12 @@ fun AddContactDialog(viewModel: HomeViewModel) = if(viewModel.showDialog) {
 
 }
 
+/**
+ * Content of the screen, contains list of contacts.
+ *
+ * @param viewModel the [HomeViewModel] that will be used to get the list of contacts.
+ * @param navigator the [DestinationsNavigator] that will be used to navigate to other screens.
+ */
 @Composable
 fun Content(viewModel: HomeViewModel, navigator: DestinationsNavigator) {
     val contacts = remember {

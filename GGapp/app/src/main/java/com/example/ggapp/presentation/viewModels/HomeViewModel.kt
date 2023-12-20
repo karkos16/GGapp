@@ -16,6 +16,12 @@ data class UserInfo(
     val id: String
 )
 
+/**
+ * ViewModel for the [ConversationScreen].
+ *
+ * @param communicatorUseCase the [CommunicatorUseCase] to be used.
+ * @param sharedPrefsRepository the [SharedPrefsRepository] to be used.
+ */
 class HomeViewModel(
     private val communicatorUseCase: CommunicatorUseCase,
     private val sharedPrefsRepository: SharedPrefsRepository

@@ -12,11 +12,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
+
 data class Message(
     val sender: String,
     val content: String
 )
 
+/**
+ * ViewModel for the [ConversationScreen].
+ *
+ * @param communicatorUseCase the [CommunicatorUseCase] to be used.
+ * @param sharedPrefsRepository the [SharedPrefsRepository] to be used.
+ */
 class ConversationViewModel(
     private val communicatorUseCase: CommunicatorUseCase,
     private val sharedPrefsRepository: SharedPrefsRepository
