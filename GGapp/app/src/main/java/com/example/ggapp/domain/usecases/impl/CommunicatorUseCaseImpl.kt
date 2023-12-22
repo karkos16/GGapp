@@ -55,6 +55,10 @@ class CommunicatorUseCaseImpl(private val serverCommunicator: ServerCommunicator
         return processContactsResponse(response)
     }
 
+    override fun getIsSocketClosed(): Boolean {
+        return serverCommunicator.isSocketClosed
+    }
+
     private fun processContactsResponse(response: String): List<UserInfo> {
         if (response == "NONE\n\n") {
             return listOf()

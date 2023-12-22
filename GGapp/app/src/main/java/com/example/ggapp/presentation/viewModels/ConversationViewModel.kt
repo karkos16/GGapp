@@ -65,4 +65,8 @@ class ConversationViewModel(
             fetchingMessagesStatus = true
         }
     }
+
+    fun getIsSocketClosedStatus(): Boolean {
+        return communicatorUseCase.getIsSocketClosed()
+    }
 }

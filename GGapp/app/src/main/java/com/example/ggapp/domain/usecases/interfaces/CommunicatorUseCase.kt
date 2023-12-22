@@ -9,4 +9,5 @@ interface CommunicatorUseCase {
     suspend fun getMessages(id: String, friendID: String): List<Message>
     suspend fun sendMessage(message: String, receiver: String, id: String): Boolean
     suspend fun getContacts(id: String): List<UserInfo>
+    fun getIsSocketClosed(): Boolean
 }

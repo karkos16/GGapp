@@ -24,9 +24,11 @@ class ServerCommunicatorImpl(
     private lateinit var socket: Socket
     private lateinit var output: OutputStream
     private lateinit var input: BufferedReader
-
+    var isSocketClosed: Boolean = false
     override fun sendMessage(messageToSend: String): String {
+        isSocketClosed = false
         socket = Socket(host, port)
+
 
         val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
         val writer = OutputStreamWriter(socket.getOutputStream())
@@ -39,7 +41,7 @@ class ServerCommunicatorImpl(
         reader.close()
         writer.close()
         socket.close()
-
+        isSocketClosed = true
         return serverResponse
     }
 

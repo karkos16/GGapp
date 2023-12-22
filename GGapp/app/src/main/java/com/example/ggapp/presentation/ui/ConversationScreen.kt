@@ -1,5 +1,6 @@
 package com.example.ggapp.presentation.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -81,7 +82,13 @@ fun ConversationScreen(
             TopAppBar(
                 title = { Text(text = "Conversation with: $contactID") },
                 navigationIcon = {
-                    IconButton(onClick = { navigator.popBackStack() }) {
+                    IconButton(onClick = {
+                        if (viewModel.getIsSocketClosedStatus()) {
+                            navigator.popBackStack()
+                        } else {
+                            Toast.makeText(context, "Socket nie został jeszcze zamknięty, spróbuj ponownie za chwilę.", Toast.LENGTH_SHORT).show()
+                        }
+                    }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back to Home Screen"
