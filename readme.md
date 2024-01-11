@@ -1,42 +1,36 @@
-# Gadu-Gadu
+# Text messenger with simple server
 
-## Opis działania + opis protokołu
+## About
 
-Wykorzystany został protokół TCP do komunikacji klient-serwer.
+Project developed as a culmination of our studies in Computer Networks at the university. This initiative emerged as a comprehensive exploration of networked systems, with a particular focus on mobile applications and server-side functionality. 
+ 
+I took charge of the mobile application, leveraging my skills in Kotlin and Jetpack Compose. Communication with the server takes place at the lowest level using sockets from java.net.Socket. On the server side, we employed C++ as the programming language, utilizing system functions such as BSD sockets for efficient network communication. The codebase was designed with a strong emphasis on concurrency, ensuring smooth and responsive operation. This was achieved through the implementation of input and output multiplexing.
 
-Klient, aby uzyskać swój numer, wysyła do serwera o numerze portu 1234 wiadomość z treścią "0000". Serwer odpowiada wiadomością z numerem klienta.
-Wówczas klient może już wysyłać wiadomości do serwera, który je dodaje do allMessages.
-Aby utworzyć nową, pustą rozmowę, klient wysyła do serwera wiadomość z treścią "0001" z numerami swoim i odbiorcy, a serwer odpowiada wiadomością 1 w przypadku, gdy klient o podanym numerze istnieje, a 0 w przeciwnym wypadku. Wówczas klient może wysyłać wiadomości do innego klienta, który je odbiera.
-Do wysyłania wiadomości należy wysłać do serwera wiadomość z treścią "0002", numerem nadawcy i odbiorcy oraz treścią wiadomości. Serwer dodaje wiadomość do wektora z wiadomości dla danej pary. Gdy nie uda się znaleźć pary, to zwracana jest pusta odpowiedź.
+Within our collaborative project, the mobile application serves as a gateway for users to interact with the underlying network infrastructure. One of the key features of the app is the ability for users to obtain a unique individual ID, securely stored on their devices.
+Once users have their individual IDs, they can enhance their experience by adding new contacts and initiating conversations with other users.
 
-W celu uzyskania wiadomości, klient wysyła do serwera wiadomość z treścią "0003" i numerem klienta oraz numerem odbiorcy. Serwer odpowiada wiadomością zawierającą wszystkie wiadomości dla danego klienta. W przypadku, gdy nie ma wiadomości, serwer zwraca pustą wiadomość.
+## Mobile app
 
-Można też pobrać numery "w kontaktach" z serwera, na przykład po ponownym uruchomieniu aplikacji. W tym celu należy wysłać do serwera wiadomość z treścią "0004" i numerem klienta. Serwer zwraca wszystkie numery, z którym klient rozmawiał.
+<table>
+<thead>
+<tr>
+<td>
 
-## Szkielet wiadomości
+![Get id screen](readme_src/get_id_screen.png)
 
-```text
-odbiorcaklfjaklfsjalkfsjafklsajTreśćkjasdflksajklafjkll\n"
-```
+</td>
+<td>
 
-## Szkielet dodawania do kontaktów
-    
-```text
-nr_kontaktuoiaiudusj\n
-```
+![Add dialog](readme_src/add_contact_dialog.png)
+</td>
+<td>
 
-## Implementacja funkcji _write i _read
+![Contacts screen](readme_src/contact_screen.png)
+</td>
+<td>
 
-Funkcja _read charakteryzuje się tym, że czyta dopóki nie natknie się na podwójny znak nowej linii charakteryzujący koniec wiadomości. Wówczas zwraca odczytaną wiadomość. Funkcja _write charakteryzuje się tym, że dopisuje do wiadomości dwa razy znak nowej linii.
-
-## Sposób kompilacji
-
-```bash
-g++ -o server server.cpp -lpthread -Wall
-```
-
-Utworzy się plik o nazwie server, który teraz można uruchomić w terminalu na Linuxie:
-
-```bash
-./server
-```
+![Conversation screen](readme_src/conversation_screen.png)
+</td>
+  </tr>
+</thead>
+</table>

@@ -86,7 +86,7 @@ fun ConversationScreen(
                         if (viewModel.getIsSocketClosedStatus()) {
                             navigator.popBackStack()
                         } else {
-                            Toast.makeText(context, "Socket nie został jeszcze zamknięty, spróbuj ponownie za chwilę.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Połączenie z serwerem nie zostało jeszcze zamknięte, spróbuj ponownie za chwilę.", Toast.LENGTH_SHORT).show()
                         }
                     }) {
                         Icon(
@@ -105,7 +105,7 @@ fun ConversationScreen(
             contentAlignment = Alignment.BottomCenter
         ) {
             LazyColumn {
-                messages.forEach() { message ->
+                messages.forEach { message ->
                     item {
                         Message(message.sender, message.content, contactID)
                     }

@@ -81,7 +81,7 @@ fun HomeScreen(
                         Row {
                             Text(text = "GGapp")
                             Spacer(modifier = Modifier.weight(0.2f))
-                            Text(text = "Twoje id: ${viewModel.id}")
+                            Text(text = "Your id: ${viewModel.id}")
                         } },
                     actions = {
                         AddContactButton(viewModel)
